@@ -150,7 +150,6 @@ fileprivate class ZHCountdownManager: NSObject {
     
     override func setTitle(_ title: String?, for state: UIControl.State) {
         super.setTitle(title, for: state)
-        print("setTitle")
         if _currentTitle == nil, title != nil && title != "" {
             _currentTitle = title
         }
@@ -158,7 +157,6 @@ fileprivate class ZHCountdownManager: NSObject {
     
     fileprivate func countdown_setTitle(_ title: String?, for state: UIControl.State) {
         super.setTitle(title, for: state)
-        print("countdown_setTitle")
     }
     
     deinit {
