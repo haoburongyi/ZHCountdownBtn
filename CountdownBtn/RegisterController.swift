@@ -46,9 +46,6 @@ class RegisterController: UIViewController {
     }
     
     
-    
-  
-    
     deinit {
         print("RegisterController deinit")
     }

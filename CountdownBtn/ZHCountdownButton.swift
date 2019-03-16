@@ -22,6 +22,9 @@ fileprivate class ZHCountdownManager: NSObject {
     fileprivate var timer: Timer?
     fileprivate var maxSec = 60
     
+    public func invalidate() {
+        ZHCountdownManager.instance = nil
+    }
     
     fileprivate var countdown = false {
         didSet {
@@ -31,7 +34,7 @@ fileprivate class ZHCountdownManager: NSObject {
                 for button in countdownButtons {
                     sec = sec == -1 ? maxSec : sec
                     button._currentTitle = button._currentTitle == nil ? button.title(for: .normal) : button._currentTitle
-                    button.setTitle("\(sec)", for: .normal)
+                    button.countdown_setTitle("\(sec)", for: .normal)
                     button.isUserInteractionEnabled = false
                 }
                 timer = ZHWeakTimer.scheduledTimer(withTimeInterval: 1, target: self, selector: #selector(countdowning), userInfo: nil, repeats: true)
@@ -60,7 +63,7 @@ fileprivate class ZHCountdownManager: NSObject {
                 button.recovery()
                 continue
             }
-            button.setTitle("\(sec)", for: .normal)
+            button.countdown_setTitle("\(sec)", for: .normal)
         }
         
         if sec < 0 {
@@ -78,10 +81,12 @@ fileprivate class ZHCountdownManager: NSObject {
         super.init()
     }
     
-    
+    deinit {
+        print("manager deinit")
+    }
 }
 
-class ZHCountdownButton: UIButton {
+@objc class ZHCountdownButton: UIButton {
     
     
     var maxSec = 60 {
@@ -101,9 +106,8 @@ class ZHCountdownButton: UIButton {
     fileprivate func recovery() {
         
         isUserInteractionEnabled = true
-        setTitle(_currentTitle ?? "", for: .normal)
+        countdown_setTitle(_currentTitle ?? "", for: .normal)
     }
-    
     
     override func didMoveToSuperview() {
         
@@ -117,7 +121,7 @@ class ZHCountdownButton: UIButton {
         if manager.countdown == true {
             
             _currentTitle = title(for: .normal)
-            setTitle("\(manager.sec)", for: .normal)
+            countdown_setTitle("\(manager.sec)", for: .normal)
             isUserInteractionEnabled = false
         }
         if manager.countdownButtons.contains(self) == false {
@@ -137,14 +141,34 @@ class ZHCountdownButton: UIButton {
             if manager.countdownButtons.count == 0 && manager.saveLastButton == nil {
                 manager.timer?.invalidate()
                 manager.timer = nil
+                manager.invalidate()
             }
         }
         
         super.removeFromSuperview()
     }
     
+    override func setTitle(_ title: String?, for state: UIControl.State) {
+        super.setTitle(title, for: state)
+        print("setTitle")
+        if _currentTitle == nil, title != nil && title != "" {
+            _currentTitle = title
+        }
+    }
+    
+    fileprivate func countdown_setTitle(_ title: String?, for state: UIControl.State) {
+        super.setTitle(title, for: state)
+        print("countdown_setTitle")
+    }
+    
     deinit {
         print("countdown button deinit")
+        let manager = ZHCountdownManager.share()
+        if manager.countdownButtons.count == 0 {
+            manager.timer?.invalidate()
+            manager.timer = nil
+            manager.invalidate()
+        }
     }
     
     override init(frame: CGRect) {
@@ -154,5 +178,4 @@ class ZHCountdownButton: UIButton {
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
-    
 }
